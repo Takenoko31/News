@@ -1,8 +1,10 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
-import { adminLoginSchema, adminDeleteSchema, adminBanSchema } from '../lib/validation';
+import { adminLoginSchema, adminDeleteSchema, adminBanSchema, isValidUuid } from '../lib/validation';
 import { signJwt } from '../lib/jwt';
 import { requireAdmin } from '../middleware/auth';
+import { checkRateLimit } from '../middleware/rate-limit';
+import { fingerprintFromRequest } from '../lib/fingerprint';
 
 const admin = new Hono<{ Bindings: Env }>();
 
@@ -12,8 +14,17 @@ const admin = new Hono<{ Bindings: Env }>();
 
 /**
  * POST /api/admin/login
+ *
+ * ブルートフォース対策: IP由来フィンガープリントで 1分5回 に制限
  */
 admin.post('/login', async (c) => {
+  // レート制限（ブルートフォース対策）
+  const fp = await fingerprintFromRequest(c.env.FINGERPRINT_SECRET, c.req.raw);
+  const rl = checkRateLimit(`admin-login:${fp}`, 5, 60_000);
+  if (!rl.allowed) {
+    return c.json({ error: { code: 'RATE_LIMITED', message: 'ログイン試行回数が上限に達しました。しばらく待ってください' } }, 429);
+  }
+
   let body: unknown;
   try {
     body = await c.req.json();
@@ -104,6 +115,9 @@ admin.get('/reports', requireAdmin, async (c) => {
  */
 admin.post('/items/:id/delete', requireAdmin, async (c) => {
   const itemId = c.req.param('id');
+  if (!isValidUuid(itemId)) {
+    return c.json({ error: { code: 'INVALID_ID', message: '無効なIDです' } }, 400);
+  }
 
   let body: unknown;
   try {
@@ -160,6 +174,9 @@ admin.post('/items/:id/delete', requireAdmin, async (c) => {
  */
 admin.post('/items/:id/unhide', requireAdmin, async (c) => {
   const itemId = c.req.param('id');
+  if (!isValidUuid(itemId)) {
+    return c.json({ error: { code: 'INVALID_ID', message: '無効なIDです' } }, 400);
+  }
 
   await c.env.DB.prepare('UPDATE items SET is_hidden = 0 WHERE id = ? AND is_deleted = 0')
     .bind(itemId)
