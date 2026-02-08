@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>バケットリスト - やりたいこと人気投票</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- ヘッダー -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+      <h1 class="text-xl font-bold text-gray-800">🪣 バケットリスト投票</h1>
+      <a href="admin.html" class="text-xs text-gray-400 hover:text-gray-600">管理</a>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-4 py-6">
+
+    <!-- 投稿フォーム -->
+    <section id="post-section" class="bg-white rounded-xl shadow-sm p-4 mb-6">
+      <h2 class="text-sm font-semibold text-gray-600 mb-2">やりたいことを投稿</h2>
+      <form id="post-form" class="space-y-2">
+        <div class="flex gap-2">
+          <input
+            id="post-text"
+            type="text"
+            maxlength="80"
+            placeholder="80文字以内で入力…"
+            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent outline-none"
+            required
+          />
+          <button
+            type="submit"
+            id="post-btn"
+            class="bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            投稿
+          </button>
+        </div>
+        <div class="text-xs text-gray-400 flex justify-between">
+          <span>URLやメールアドレス、電話番号は投稿できません</span>
+          <span id="char-count">0/80</span>
+        </div>
+        <div id="post-turnstile" class="cf-turnstile" data-sitekey="" data-callback="onPostTurnstile" data-expired-callback="onPostTurnstileExpired"></div>
+      </form>
+    </section>
+
+    <!-- タブ -->
+    <div class="flex gap-1 mb-4">
+      <button id="tab-ranking" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg bg-blue-500 text-white" data-sort="ranking">
+        ランキング
+      </button>
+      <button id="tab-new" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300" data-sort="new">
+        新着
+      </button>
+    </div>
+
+    <!-- アイテムリスト -->
+    <div id="items-list" class="space-y-3">
+      <!-- 動的に生成 -->
+    </div>
+
+    <!-- ローディング / もっと見る -->
+    <div id="load-more-area" class="text-center py-6">
+      <button
+        id="load-more-btn"
+        class="text-sm text-blue-500 hover:text-blue-700 font-medium hidden"
+      >
+        もっと見る
+      </button>
+      <div id="loading" class="spinner hidden"></div>
+      <p id="empty-message" class="text-gray-400 text-sm hidden">投稿がまだありません</p>
+    </div>
+  </main>
+
+  <!-- 通報モーダル -->
+  <div id="report-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h3 class="text-lg font-semibold mb-3">通報</h3>
+      <form id="report-form" class="space-y-3">
+        <input type="hidden" id="report-item-id" />
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">理由</label>
+          <select id="report-reason" class="w-full border rounded-lg px-3 py-2 text-sm" required>
+            <option value="">選択してください</option>
+            <option value="spam">スパム</option>
+            <option value="hate">差別・ヘイト</option>
+            <option value="sexual">性的な内容</option>
+            <option value="personal_info">個人情報</option>
+            <option value="violence">暴力</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">コメント（任意・200文字以内）</label>
+          <textarea id="report-comment" maxlength="200" rows="2" class="w-full border rounded-lg px-3 py-2 text-sm"></textarea>
+        </div>
+        <div id="report-turnstile" class="cf-turnstile" data-sitekey="" data-callback="onReportTurnstile" data-expired-callback="onReportTurnstileExpired"></div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" id="report-cancel" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800">キャンセル</button>
+          <button type="submit" id="report-submit" class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">送信</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- トースト -->
+  <div id="toast" class="toast"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
