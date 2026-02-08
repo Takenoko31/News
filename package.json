@@ -1,0 +1,23 @@
+{
+  "name": "bucket-list-voting",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "dev:web": "npx serve web -l 8080",
+    "deploy": "wrangler deploy",
+    "deploy:web": "wrangler pages deploy web --project-name bucket-list-web",
+    "db:create": "wrangler d1 create bucket-list-db",
+    "db:migrate": "wrangler d1 execute bucket-list-db --remote --file=migrations/0001_init.sql",
+    "db:migrate:local": "wrangler d1 execute bucket-list-db --local --file=migrations/0001_init.sql"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241106.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^3.91.0"
+  }
+}

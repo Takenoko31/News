@@ -1,0 +1,17 @@
+name = "bucket-list-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bucket-list-db"
+database_id = ""  # ← D1作成後にIDを貼り付ける
+
+[vars]
+ALLOWED_ORIGIN = "http://localhost:8080"
+
+# 以下はシークレット。wrangler secret put で設定する:
+# TURNSTILE_SECRET
+# FINGERPRINT_SECRET
+# ADMIN_PASSWORD
+# JWT_SECRET
